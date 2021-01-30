@@ -1,0 +1,100 @@
+Run a task only if a specific device exists:
+---
+- name: search for /dev/sdb continue only if it is found
+  hosts: all
+  vars:
+    disk_name: sdb
+  tasks:
+  - name: abort if second disk does not exist
+    assert:
+      that:
+        - "ansible_facts['devices']['{{ disk_name }}'] is defined"
+      fail_msg: second hard disk not found
+  - debug: 
+      msg: "{{ disk_name }} was found, lets continue"
+
+
+Detect Devices and store in variables:
+---
+- name: define variable according to diskname detected
+  hosts: all
+  tasks:
+  - ignore_errors: yes
+    set_fact:
+      disk2name: sdb
+    when: ansible_facts['devices']['sdb']
+
+
+parted module: for partitioning disks
+    name argument not reaquired for mbr (msdos) partitions.  reaquired for GPT partitions
+---
+- name: create storage
+  hosts: ansible2
+  tasks:
+  - name: create new partition
+    parted:
+      name: files
+      label: gpt
+      device: /dev/vdb
+      number: 1
+      state: present
+      part_start: 1MiB
+      part_end: 2GiB
+  - name: create another new partition
+    parted:
+      name: swap
+      label: gpt
+      device: /dev/vdb
+      number: 2
+      state: present
+      part_start: 2GiB
+      part_end: 4GiB
+      flags: [ lvm ]
+
+
+lvg module: volume groups
+lvol module: logical volumes
+  - name: create a volume group
+    lvg:
+      vg: vgdata
+      pesize: 8
+      pvs: /dev/sdb2
+
+  - name: create a logical volume:
+    lvol:
+      lv: lvdata
+      size: 100%FREE
+      vg: vgdata
+
+
+filesystem module
+create a filesystem:
+  - name: create an XFS filesystem
+    filesystem:
+      dev: /dev/vgdata/lvdata
+      fstype: xfs
+
+
+mount module:
+    For state option, mounted mounts device now AND puts in fstab, present ONLY puts in fstab
+  - name: mount the filesystem
+    mount:
+      src: /dev/vgdata/lvdata
+      fstype: xfs
+      state: mounted
+
+
+Create swap:
+---
+- name: configure swap storage
+  hosts: ansible2
+  tasks:
+  - name: setup swap
+    block:
+    - name: make the swap filesystem
+      filesystem:
+        fstype: swap
+        dev: /dev/sdb1
+    - name: activate swap space
+      command: swapon /dev/sdb1
+    when: ansible_swaptotal_mb < 256

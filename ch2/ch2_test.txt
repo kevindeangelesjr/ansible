@@ -1,0 +1,1 @@
+Set up controller and all managed nodes for use with ansible

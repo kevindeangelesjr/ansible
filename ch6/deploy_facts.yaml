@@ -1,0 +1,14 @@
+---
+- name: Deploy Fact Files to Managed Hosts
+  hosts: all
+  vars:
+    facts_dir: /etc/ansible/facts.d/
+  tasks:
+  - name: Copy local_facts-packages to managed hosts
+    copy:
+      src: local_facts-packages.fact
+      dest: "{{ facts_dir }}"
+  - name: Copy local_facts-services to managed hosts
+    copy:
+      src: local_facts-services.fact
+      dest: "{{ facts_dir }}"

@@ -1,0 +1,107 @@
+Variable example:
+---
+- name: create a user using a Variable
+  hosts: all
+  vars:
+    users: lisa
+  tasks:
+  - name: create a user {{ users }} on hosts {{ ansible_hostname }}
+    user:
+      name: "{{ users }}"
+
+Entire line that starts with variable must be doubled quoted
+
+Facts: variables that are automatically gathered/set
+    all stored in the ansible_facts variable
+
+    ---
+    - name: show facts
+      hosts: all
+      tasks:
+      - name: show all facts
+        debug:
+          var: ansible_facts
+
+    How to address facts:
+        {{ ansible_facts['default ipv4']['address'] }} (preferred)
+        or
+        {{ ansible_facts.default_ipv4.address }}
+
+Custom Facts
+    stored on managed hosts at /etc/ansible/facts.d/
+    stored in variable ansible_facts.ansible_local
+        {{ ansible_facts['ansible_local']['fact_file']['packages']['web_package'] }}
+    in ini or json format
+
+        [packages]
+        web_package = httpd
+        ftp_package = vsftpd
+        [services]
+        web_service = httpd
+        ftp_service = vsftpd
+
+Include files: list variables in separate files
+
+    ---
+    - name: using a varaible include file
+      hosts: all
+      vars_files:
+        - vars/common
+      tasks:
+      ...
+
+host_vars:
+    Create directory called host_vars
+    In that directory, create a file that mathces the inventory name of the host
+
+group_vars:
+    similar approach, call dir group_vars
+
+List/array: Key that has multiple items as a value
+    Each item starts with a dash
+    Items in list can be addressed using number
+        {{ users[1] }}
+    Example:
+
+        users:
+          - linda:
+            username: linda
+            homedir: /home/linda
+            shell: /bin/bash
+          - lisa:
+            username: lisa
+            homedir: /home/lisa
+            shell: /bin/bash
+          - anna:
+            username: anna
+            homedir: /home/anna
+            shell: /bin/bash
+
+        Example use in playbook:
+        
+        tasks:
+        - name: Print list values
+          debug:
+            msg: "User {{ users['linda']['username'] }} has home directory {{ users['linda']['homedir'] }}"
+
+Dictionary: alternative notation to arrays, not often used
+
+Ansible vault: encrypt/decrypt sensitive data
+    Encrypt variable file using ansible-vault command
+        ansible-vault create secret.yml (new file)
+        ansible-vault encrypt (existing file)
+    Using in playbook:
+        --vault-id @prompt 
+        This prompts for password
+        or
+        --ask-vault-pass
+
+Store results of command in variable: user register
+    ---
+    - name: test register
+      hosts: client1
+      tasks:
+      - shell: cat /etc/passwd
+        register: passwd_contents
+      - debug:
+          var: "passwd_contents"

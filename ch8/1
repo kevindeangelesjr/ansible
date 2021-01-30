@@ -1,0 +1,5 @@
+# {{ ansible_managed }}
+
+{% for node in groups['all'] %}
+{{ node }}	{{ node['
+{% endfor %}

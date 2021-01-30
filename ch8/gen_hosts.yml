@@ -1,0 +1,11 @@
+---
+- name: Generate /etc/hosts file
+  hosts: all
+  tasks:
+    - name: Generate and copy /etc/hosts using template
+      template:
+        src: hosts2.j2
+        dest: /etc/hosts2
+        owner: root
+        group: root
+        mode: 0644 

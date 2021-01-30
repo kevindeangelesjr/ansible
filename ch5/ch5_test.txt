@@ -1,0 +1,7 @@
+Create a playbook that does the following:
+1. Install, start, enable httpd and firewalld 
+2. Create a Welcome Page on the webserver
+3. Allow firewall access to the http webserver
+4. Tests webserver access from localhost
+
+Create a playbook that undoes all of the above

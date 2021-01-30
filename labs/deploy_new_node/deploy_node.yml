@@ -1,0 +1,71 @@
+---
+- name: Add New Node to Inventory
+  hosts: localhost
+  tasks:
+
+  - fail:
+      msg: "add the option -e newhost=hostname and try again"
+    when: newhost is undefined
+
+  - name: Add New Node to Inventory
+    lineinfile:
+      path: inventory
+      state: present
+      line: "{{ newhost }}"
+
+  tags: addhost
+
+- name: Configure the New Node
+  hosts: "{{ newhost }}"
+  remote_user: root
+  become: false
+  tasks:
+
+  - name: Configure User ansible
+    user:
+      name: ansible
+      group: wheel
+      append: yes
+      state: present
+
+  - name: Set Password for User ansible
+    shell: 'echo ansible | passwd --stdin ansible'
+
+  - name: Enable Password-less sudo
+    lineinfile:
+      path: /etc/sudoers
+      line: 'ansible ALL=(ALL) NOPASSWD: ALL'
+
+  - name: Create SSH Directory in User ansible's Home
+    file:
+      path: /home/ansible/.ssh
+      state: directory
+      owner: ansible
+      group: ansible
+
+  - name: Copy SSH Public Key to Remote Host
+    copy:
+      src: /home/ansible/.ssh/id_rsa.pub
+      dest: /home/ansible/.ssh/authorized_keys
+
+  tags: setuphost
+
+- name: Register and Subscribe {{ newhost }}
+  hosts: "{{ newhost }}"
+  vars_files:
+  - sub_creds.yml
+  tasks:
+  - name: Register and Subscribe {{ newhost }}
+    redhat_subscription:
+      username: "{{ rhsm_user }}"
+      password: "{{ rhsm_password }}"
+      state: present
+ 
+  - name: Configure Additional Repo Access
+    rhsm_repository:
+      name:
+      - rh-gluster-3-client-for-rhel-8-x86_64.rpms
+      - rhel-8-forx86_64-appstream-debug-rpms
+      state: present
+
+  tags: registerhost

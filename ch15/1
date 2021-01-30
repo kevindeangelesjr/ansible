@@ -1,0 +1,25 @@
+---
+- name: Configure Secondary Disk
+  hosts: client1
+  vars:
+    disk_name: vdb
+  tasks:
+
+  - name: Abort if /dev/vdb Does Not Exist
+    assert:
+      that:
+        - "ansible_facts['devices']['{{ disk_name }}'] is defined"
+      fail_msg: Device /dev/vdb Not Present
+
+  - debug: 
+      msg: "{{ disk_name }} Detected!  Continuing ... "
+
+  - name: Partition /dev/vdb
+    parted:
+      label: gpt
+      device: /dev/vdb
+      number: 1
+      state: present
+
+  - name: 
+

@@ -1,0 +1,6 @@
+1. Create an inventory file that contains all the clients.
+    a. It must include at least 1 group and 1 nested group
+2. Create an ansible.cfg
+    a. Sudo will be the become method
+    b. Root is the become user
+    c. use the inventory file created above

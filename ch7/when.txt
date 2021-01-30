@@ -1,0 +1,71 @@
+when: run tasks conditionally
+    When evaluating variable in when statements, dont put in curly braces
+
+    ---
+    - name: Conditional Install
+      hosts: all
+      tasks:
+      - name: Install apache on Red Hat and family
+        yum:
+          name: httpd
+          state: latest
+        when: ansible_facts['os_family'] == "RedHat"
+      - name: Install apache on Ubuntu and family
+        apt:
+          name: apache2
+          state: latest
+        when: ansible_facts['os_family'] == "Debian"
+
+Conditional test:
+    variable is defined                     -   variable exists
+    variable is not defined                 -   variable does not exist
+    ansible_distribution in distributions   -   First variable present in second list
+    variable                                -   Variable is true
+    not variable                            -   Variable is false
+    key == "value"                          -   Equal (string)
+    key == value                            -   Equal (numeric)
+    key < value
+    key <= value
+    key > value
+    key >= value
+    key != value
+
+Test multiple conditions:
+    and
+    or
+    Can also group conditions together in parentheses:
+
+when: >
+  ( ansible_facts['distribution'] == "RedHat" and
+    ansible_facts['memfree_mb'] < 512 )
+  or
+  ( ansible_facts['distribution'] == "CentOS" and
+    ansible_facts['memfree_mb'] < 256 )
+
+Combine loop and when:
+---
+- name: conditionals test
+  hosts: all
+  tasks:
+  - name: update kernel if sufficient space in /boot
+    package:
+      name: kernel
+      state: latest
+    loop: "{{ ansible_facts['mounts'] }}"
+    when: item.mount == "/boot" and item.size_available > 200000000
+
+
+Use when with register:
+    find to search to a string in a variable
+
+---
+- name: test register
+  hosts: all
+  tasks:
+    - shell: cat /etc/passwd
+      register: passwd_contents
+    - debug:
+        msg: "{{ passwd_contents }}"
+    - debug: 
+        msg: passwd contains user lisa
+      when: passwd_contents.stdout.find('lisa') != -1

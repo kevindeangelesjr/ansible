@@ -1,0 +1,65 @@
+---
+- name: Configure Secondary Disk
+  hosts: client1
+  vars:
+    disk_name: vdb
+  tasks:
+
+  - name: Abort if /dev/vdb Does Not Exist
+    assert:
+      that:
+        - "ansible_facts['devices']['{{ disk_name }}'] is defined"
+      fail_msg: Device /dev/vdb Not Present
+
+  - debug: 
+      msg: "{{ disk_name }} Detected!  Continuing ... "
+
+  - name: Partition /dev/vdb
+    parted:
+      label: gpt
+      device: /dev/vdb
+      number: 1
+      state: present
+
+  - name: Create Volume Group vgfiles
+    lvg:
+      vg: vgfiles
+      pvs: /dev/vdb1
+
+  - name: Get Updated Facts
+    setup:
+
+  - name: Get Volume Group Size
+    set_fact:
+      vgsize: "{{ ansible_facts['lvm']['vgs']['vgfiles']['size_g'] | int }}"
+
+  - name: Create Logical Volume lvfiles at 5GB if Volume Group > 5GB
+    lvol:
+      vg: vgfiles
+      lv: lvfiles
+      size: 5G
+    when: vgsize | int > 5
+
+  - name: Create Logical Volume lvfiles at 3GB if Volume Group <= 5GB
+    lvol:
+      vg: vgfiles
+      lv: lvfiles
+      size: 3G
+    when: vgsize | int <= 5
+
+  - name: Format lvfiles LV as XFS
+    filesystem:
+      dev: /dev/vgfiles/lvfiles
+      fstype: xfs
+
+  - name: Create /files Directory
+    file:
+      name: /files
+      state: directory
+
+  - name: Mount lvfiles LV on /files
+    mount:
+      path: /files
+      src: /dev/vgfiles/lvfiles
+      state: mounted
+      fstype: xfs

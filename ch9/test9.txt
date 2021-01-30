@@ -1,0 +1,22 @@
+LAB 9-1
+
+Create a playbook that starts the Nginx web server on ansible1, according to the following requirements:
+
+• A requirements file must be used to install the Nginx web server. Do NOT use the latest version of the Galaxy role, but instead use the version before that.
+
+• The same requirements file must also be used to install the latest version of postgresql.
+
+• The playbook needs to ensure that neither httpd nor mysql is currently installed.
+
+
+LAB 9-2
+
+Use the RHEL SELinux System Role to manage SELinux properties according to the following requirements:
+
+• A Boolean is set to allow SELinux relabeling to be automated using cron.
+
+• The directory /var/ftp/uploads is created, permissions are set to 777, and the context label is set to public_content_rw_t.
+
+• SELinux should allow web servers to use port 82 instead of port 80.
+
+• SELinux is in enforcing state.

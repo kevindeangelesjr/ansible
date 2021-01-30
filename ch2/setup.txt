@@ -1,0 +1,17 @@
+Clients:
+    python (already installed)
+    ssh running
+    ansible user
+
+Controller:
+    python (already installed)
+    ansible
+        yum install -y python3-pip
+        alternatives --set python /usr/bin/python3
+        pip3 install ansible --user (as ansible user)
+    ansible user
+        must have SSH access to Clients
+            ssh-keygen
+            ssh-copy-id <client>
+        must be able to run tasks as root on clients
+            echo "ansible ALL=(ALL)NOPASSWD:ALL"> /etc/sudoers.d/ansible

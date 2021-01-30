@@ -1,0 +1,45 @@
+Generate configuration files
+
+variable:
+    {{ ansible_facts['default_ipv4']['address'] }}
+
+for loop:
+    {% for myhost in groups['web'] %}
+    {{ myhost }}
+    {% endfor %}
+
+if statement:
+    {% if apache_package == 'apache2' %}
+    Welcome to Apache2
+    {% else %} 
+    Welcome to httpd
+    {% endif %} 
+
+Example jinja2 template:
+
+# {{ ansible_managed }}
+
+<VirtualHost *:80>
+	ServerAdmin webmaster@{{ ansible_facts['fqdn'] }}
+ 	ServerName {{ ansible_facts['fqdn'] }}
+	ErrorLog logs/{{ ansible_facts['hostname'] }}-error.log
+	CustomLog	logs/{{ ansible_facts['hostname'] }}-common.log common
+	DocumentRoot /var/www/vhosts/{{ ansible_facts['hostname'] }}/
+
+	<Directory /var/www/vhosts/{{ ansible_facts['hostname'] }}>
+		Options +Indexes +FollowSymlinks +Includes
+		Order allow,deny
+		Allow from all
+	</Directory>
+</VirtualHost>
+
+
+Use template module to install template:
+
+  - name: install vhost config file
+    template:
+      src: listing813.j2
+      dest: /etc/httpd/conf.d/vhost.conf
+      owner: root
+      group: root
+      mode: 0644

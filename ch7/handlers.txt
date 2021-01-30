@@ -1,0 +1,24 @@
+handler: task that is triggered and executed by a successful task
+    define a notify statement that lists name of handler
+    handlers listed at end of the play
+    ONLY RUN IF changed status on the task
+
+...
+- name: set up web server
+  hosts: all
+  tasks:
+    - name: copy index.html
+      copy:
+        src: /tmp/index.html
+        dest: /var/www/html/index.html
+      notify:
+        - restart_web
+  handlers:
+    - name: restart_web
+      service:
+        name: httpd
+        state: restarted
+
+If following tasks fail, the handler wont run
+    To ensure handler runs, in header define: force_handlers: true
+    More generic: ignore_errors: true

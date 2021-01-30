@@ -1,0 +1,80 @@
+---
+- name: Create Repository Directory
+  hosts: client1
+  tasks:
+
+  - name: Create /repo Path
+    file:
+      path: /repo
+      state: directory
+      mode: 0777
+
+  - name: Download nginx RPM
+    yum:
+      name: nginx
+      download_only: yes
+      download_dir: /repo
+ 
+  - name: Install createrepo package
+    yum:
+      name: createrepo_c    
+      state: latest
+
+  - name: Run createrepo
+    command: createrepo /repo
+
+- name: Configure HTTPD Server
+  hosts: client1
+  vars:
+    selinux_policy: targeted
+    selinux_state: enforcing
+    selinux_fcontexts:
+      - { target: '/repo(/.*)?', setype: 'httpd_sys_content_t', ftype: 'd' }
+    selinux_restore_dirs:
+      - /repo
+  tasks:
+
+  - name: Install HTTPD Package
+    yum:
+      name: httpd
+      state: present
+
+  - name: Enable and Start HTTPD Services
+    service:
+      name: httpd
+      enabled: yes
+      state: started
+
+  - name: Open Firewall Access for HTTP
+    firewalld:
+      service: http
+      immediate: yes
+      permanent: yes
+      state: enabled
+
+  - name: Execute the SELinux RHEL Role
+    block:
+      - include_role:
+          name: rhel-system-roles.selinux
+
+  - name: Modify Apache Document Root
+    lineinfile:
+      dest: /etc/httpd/conf/httpd.conf
+      regexp: '^DocumentRoot'
+      line: 'DocumentRoot "/repo"'
+    notify:
+      - restart_httpd
+
+  - name: Modify Apache Document Root
+    lineinfile:
+      dest: /etc/httpd/conf/httpd.conf
+      regexp: '^<Directory "/var/www/html">'
+      line: '<Directory "/repo">'
+    notify:
+      - restart_httpd
+
+  handlers:
+    - name: restart_httpd
+      service:
+        name: httpd
+        state: restarted

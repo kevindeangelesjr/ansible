@@ -1,0 +1,15 @@
+---
+- name: Install NGINX
+  hosts: client1
+  roles:
+  - geerlingguy.nginx
+  - geerlingguy.postgresql
+  tasks:
+  - name: Ensure that mysql is not installed
+    yum:
+      name: mysql
+      state: absent
+  - name: Ensure that httpd is not installed
+    yum:
+      name: httpd
+      state: absent

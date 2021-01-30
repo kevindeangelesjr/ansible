@@ -1,0 +1,33 @@
+L00p:
+    item is system internal variable
+
+    ---
+    - name: Start services
+      hosts: client1
+      tasks:
+      - name: Start the services
+        service:
+          name: "{{ item }}"
+          state: started
+          enabled: yes
+        loop:
+        - vsftpd
+        - httpd
+        - smb
+
+    Better version (define loop as variable in header)
+    ---
+    - name: Start services
+      hosts: client1
+      vars:
+        services:
+        - vsftpd
+        - httpd
+        - smb
+      tasks:
+      - name: Start the services
+        service:
+          name: "{{ item }}"
+          state: started
+          enabled: yes
+        loop: "{{ services }}"

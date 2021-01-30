@@ -1,0 +1,66 @@
+---
+- name: Install and Configure VSFTPD Service
+  hosts: all
+  tasks:
+
+  - name: Install vsfptd
+    dnf:
+      name: vsftpd
+      state: latest
+
+  - name: Start and enable vsfptd service
+    service:
+      name: vsftpd
+      enabled: yes
+      state: started
+
+  - name: Open firewall ports
+    firewalld:
+      service: ftp
+      permanent: yes
+      immediate: yes
+      state: enabled
+
+- name: Deploy vsftpd.conf 
+  hosts: all
+  vars_files:
+    - vars/vsftpd.yml
+  tasks:
+
+  - name: Deploy vsftpd.conf template
+    template:
+      src: vsftpd.j2
+      dest: /etc/vsftpd/vsftpd.conf
+      owner: root
+      group: root
+      mode: 0600
+    notify:
+      - restart_vsftpd
+
+  - name: Set permissions on /var/ftp/pub
+    file:
+      path: /var/ftp/pub
+      mode: 0777
+      state: directory
+
+  - name: Set ftpd_anon_write SELinux Boolean
+    seboolean:
+      name: ftpd_anon_write
+      state: yes
+      persistent: yes
+
+  - name: Set SELinux file context for /var/ftp/pub
+    sefcontext:
+      target: '/var/ftp/pub(/.*)?'
+      setype: public_content_rw_t
+      state: present
+
+  - name: Apply new SELinux file context to filesystem
+    ansible.builtin.command: restorecon -irv /var/ftp/pub
+
+  handlers:
+
+    - name: restart_vsftpd
+      service:
+        name: vsftpd
+        state: restarted

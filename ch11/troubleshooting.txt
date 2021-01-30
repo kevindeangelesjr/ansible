@@ -1,0 +1,45 @@
+ansible-playbook --check
+    check mode (changes shown but not executed)
+
+    --def 
+    Shows how template will look
+
+    --step
+    runs tasks one by one and prompts for confirmation before running next tasks
+
+    --list-tasks
+
+    --start-at-task="task name"
+
+
+uri module:
+  - name: connect to the web server
+    uri:
+      url: http://ansible2.example.com
+      return_content: yes
+    register: this
+    failed_when: "'welcome' not in this.content"
+  - debug:
+      var: this.content
+
+
+stat module:
+- name: check file status
+  hosts: all
+  tasks:
+  - stat:
+      path: /tmp/statfile
+    register: stat_out
+  - fail: 
+      msg: "/tmp/statfile file owner not as expected"
+    when: stat_out.stat.pw_name != 'root'
+
+
+assert module:
+  - name: check if file size is valid
+    assert:
+      that:
+      - "{{ (filesize | int) <= 100 }}"
+      - "{{ (filesize | int) >= 1 }}"
+      fail_msg: "file size must be between 0 and 100"
+      success_msg: "file size is good, let\'s continue"

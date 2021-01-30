@@ -1,0 +1,104 @@
+stat module
+    Check file attributes/status
+    mainly just for checking properties and then making a change based on that
+
+file module
+    set file properties
+
+---
+- name: using the file module
+  hosts: ansible1
+  tasks:
+  - name: create directory
+    file:
+      path: /newdir
+      owner: ansible
+      group: ansible
+      mode: 770
+      state: directory
+  - name: create file in that directory
+    file:
+      path: /newdir/newfile
+      state: touch
+  - name: show the new file
+    stat:
+      path: /newdir/newfile
+    register: result
+  - debug:
+      msg: |
+           This shows that newfile was created
+           "{{ result }}"
+  - name: removing everything again
+    file:
+      path: /newdir
+      state: absent
+
+
+find module
+    find files
+
+lineinfile module - manipulate lines in files
+    use regex to search and change a line:
+
+---
+- name: configuring SSH
+  hosts: all
+  tasks:
+  - name: disable root SSH login
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: "^PermitRootLogin"
+      line: "PermitRootLogin no"
+    notify: restart sshd
+
+blockinfile - manipulate complete blocks of text
+
+  - name: add some lines to /tmp/hosts
+    blockinfile:
+      path: /tmp/hosts
+      block: | 
+        192.168.4.110 host1.example.com
+        192.168.4.120 host2.example.com
+      state: present
+
+Copy module
+    copy files from controller to node
+
+fetch module
+    copy from from node to controller
+
+synchronize module
+    rsync-like
+
+sefcontext moduel - SELinux set file context
+    need to use command module to run restorecon afterwards
+    must ensure policycoreutils-python-utils is installed
+
+---
+- name: show selinux
+  hosts: all
+  tasks:
+  - name: install required pacakges
+    yum:
+      name: policycoreutils-python-utils
+      state: present
+  - name: create testfile
+    file:
+      name: /tmp/selinux
+      state: touch
+  - name: set selinux context
+    sefcontext:
+      target: /tmp/selinux
+      setype: httpd_sys_content_t
+      state: present
+    notify:
+      - run restorecon
+  handlers:
+  - name: run restorecon
+    command: restorecon -v /tmp/selinux 
+
+selinux module
+    set to permissive/disabled/enforcing
+
+seboolean
+    set selinux booleans

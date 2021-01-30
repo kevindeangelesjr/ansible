@@ -1,0 +1,22 @@
+1. Create an inventory that contains a host in a group called file and a host in a group called lamp
+2. Create a custom facts file that contains a section called packages with the following variables:
+    smb_package = samba
+    ftp_package = vsftpd
+    db_package = mariadb
+    web_package = httpd
+    firewall_package = firewalld
+3. Create another custom fact file that contains a section called services with the following variables:
+    smb_service = smbd
+    ftp_service = vsftpd
+    db_service = mariadb
+    web_service = httpd
+    firewall_service = firewalld
+4. Create a playbook that copies these facts to all the managed hosts
+    use a variable to specify the directory on the managed hosts
+5. Create a variable file with the following variables:
+    web_root = /var/www/html
+    ftp_root = /var/ftp
+6. Create a playbook to set up the file services and web services and open the firewall_package
+    Make sure the webservice provides access to a welcome page
+7. Reimplement the variable file using Ansible vault
+8. Create a playbook that displays the hostname, OS distribution and version, and IP address of all hosts

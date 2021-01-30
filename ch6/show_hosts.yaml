@@ -1,0 +1,7 @@
+---
+- name: Show Facts About Hosts
+  hosts: all
+  tasks:
+  - name: Show Facts
+    debug:
+      msg: "Hostname: {{ ansible_facts['nodename'] }}.  OS: {{ ansible_facts['os_family'] }}.  Version: {{ ansible_facts['distribution_version'] }}.  IP address: {{ ansible_facts['default_ipv4']['address'] }}"

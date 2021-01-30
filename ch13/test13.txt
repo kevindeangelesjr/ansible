@@ -1,0 +1,13 @@
+LAB 13-1
+
+Write a playbook that creates users according to the following specifications:
+
+• Create users kim, christina, kelly, and bill.
+
+• Users kim and kelly must be members of the profs group; users christina and bill are members of the students group.
+
+• While creating the users, set the encrypted password to “password”.
+
+• Ensure that members of the group profs have sudo privileges.
+
+Ensure that all users use SSH keys for login

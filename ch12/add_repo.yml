@@ -1,0 +1,17 @@
+---
+- name: Add Configuration for NGINX Repo
+  hosts: client2
+  tasks:
+
+  - name: Add NGINX Repo
+    yum_repository:
+      name: nginx_repo
+      description: NGINX Repo
+      file: nginx_repo
+      baseurl: http://client1/repo/
+      gpgcheck: no
+
+  - name: Install NGINX
+    yum:
+      name: nginx
+      state: latest

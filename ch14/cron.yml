@@ -1,0 +1,24 @@
+---
+- name: Create Reboot Cron Job
+  hosts: all
+  tasks:
+
+  - name: Create Cron Job to Reboot at 2 AM Every Wednesday
+    cron:
+      name: "reboot 2am wednesday"
+      weekday: "4"
+      minute: "0"
+      hour: "2"
+      job: "systemctl reboot"
+
+  - name: Create a Cron Job to Log to syslog After System Reboot
+    cron:
+      name: "log reboot"
+      special_time: "reboot"
+      job: "echo 'System Reboot Completed' | /usr/bin/logger"
+
+  - name: Set Boot Target to Multi-User
+    file:
+      src: /usr/lib/systemd/system/multi-user.target
+      dest: /etc/systemd/system/default.target
+      state: link

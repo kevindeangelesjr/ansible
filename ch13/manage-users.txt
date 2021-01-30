@@ -1,0 +1,78 @@
+user and group modules:
+    ---
+    - name: creating a user and group
+    hosts: ansible2
+    tasks:
+    - name: setup the group account
+        group:
+        name: students
+        state: present
+    - name: setup the user account
+        user:
+        name: anna
+        create_home: yes
+        groups: wheel,students
+        append: yes
+        generate_ssh_key: yes
+        ssh_key_bits: 2048
+        ssh_key_file: .ssh/id_rsa
+
+
+Set variable to the contents of a file (use lookup plugin):
+    ---
+    - name: simple demo with the lookup plugin
+    hosts: localhost
+    vars: 
+        file_contents: "{{lookup('file', '/etc/hosts')}}"
+    tasks:
+    - debug:
+        var: file_contents
+
+
+SSH Key management:
+    ---
+    - name: authorized_key simple demo
+    hosts: ansible2
+    tasks:
+    - name: copy authorized key for ansible user
+      authorized_key: 
+        user: ansible
+        state: present
+        key: "{{ lookup('file', '/home/ansible/.ssh/id_rsa.pub') }}"
+
+
+Generate SSH key:
+    - name: create the local user and an SSH key
+      user:
+        name: "{{ username }}"
+        generate_ssh_key: true
+        ssh_key_comment: "{{ username }}@{{ ansible_fqdn }}"
+
+    Now, copy file to project directory so it can be copied to the remote host
+    - name: create a directory to store the file
+      file:
+        name: "{{ username }}"
+        state: directory
+    - name: copy the local user ssh key to temporary {{ username }} key
+      shell: 'cat /home/{{ username }}/.ssh/id_rsa.pub > {{ username }}/id_rsa.pub'
+
+
+Generate encrypted password:
+    ---
+    - name: create user with encrypted pass
+    hosts: ansible2
+    vars_prompt:
+    - name: passw
+        prompt: which password do you want to use
+    vars:
+        user: sharon
+    tasks:
+    - debug: 
+        msg: "{{ '{{ passw }}' | password_hash('sha512','myrandomsalt') }}"
+        register: mypass
+    - debug:
+        var: mypass
+    - name: create the user
+        user: 
+        name: "{{ user }}"
+        password: "{{ mypass.msg }}"

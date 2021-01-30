@@ -1,0 +1,12 @@
+Prompt for input at the command line
+
+---
+- name: Prompt for input
+  hosts: all
+  vars_prompt:
+  - name: my_answer
+    prompt: which package do you want to Install
+  tasks:
+  ...
+
+stored in variable my_answer

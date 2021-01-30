@@ -1,0 +1,41 @@
+role precedence:
+    ./roles
+    ~/.ansible/roles
+    /etc/ansible/roles
+    /usr/share/ansible/roles
+
+Create role directory structure:
+    ansible-galaxy init
+
+Use role in playbook:
+---
+- name: include some roles
+  roles:
+  - role1
+  - role2
+
+Define role dependencies (role that needs another role to run first)
+    dependencies:
+    - role: apache
+      port: 8080
+    - role: mariadb
+      when: environment == 'production'
+
+ansible-galaxy command
+    ansible-galaxy search "string"
+    ansible-galaxy info <module>
+    ansible-galaxy install <module>
+    ansible-galaxy list
+    ansible-galaxy remove
+
+requirements file: list of roles to install:
+ - src: geerlingguy.nginx
+   version: "2.7.0"
+
+Install with requirements file:
+    ansible-galaxy install -r roles/requirements.yml
+
+
+RHEL system roles:
+    sudo yum install rhel-system-roles
+    /usr/share/doc/rhel-system-roles - for documentation

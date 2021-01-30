@@ -1,0 +1,24 @@
+---
+- name: Configure Repository
+  hosts: all
+  vars:
+    my_package: nmap
+  tasks:
+  - name: Connect to FTP Repo
+    yum_repository:
+      name: ftp_repo
+      description: ftp_repo
+      file: ftp_repo
+      baseurl: ftp://controller/repo/
+      gpgcheck: no
+  - name: install package
+    yum:
+      name: "{{ my_package }}"
+      state: present
+  - name: Update Package Facts
+    package_facts:
+      manager: auto
+  - name: show package facts for {{ my_package }}
+    debug:
+      var: ansible_facts.packages[my_package]
+    when: my_package in ansible_facts.packages

@@ -1,0 +1,59 @@
+---
+- name: Deploy FTP Repo on localhost
+  hosts: localhost
+  tasks:
+
+  - name: Install vsftpd Service
+    yum:
+      name: vsftpd
+      state: latest
+
+  - name: Allow Anonymous Acces to FTP
+    lineinfile:
+      path: /etc/vsftpd/vsftpd.conf
+      regexp: '^anonymous_enable=NO'
+      line: anonymous_enable=YES
+
+  - name: Start vsftpd Service
+    service:
+      name: vsftpd
+      enabled: yes
+      state: started
+
+  - name: Open Firewall for FTP
+    firewalld:
+      service: ftp
+      permanent: yes
+      immediate: yes
+      state: enabled
+
+- name: Set Up Repo Directory
+  hosts: localhost
+  tasks:
+
+  - name: Create Directory
+    file:
+      path: /var/ftp/repo
+      state: directory
+
+  - name: Download Packages
+    yum:
+      name: nmap
+      download_only: yes
+      download_dir: /var/ftp/repo
+
+  - name: Install createrepo Package
+    yum:
+      name: createrepo_c
+      state: latest
+
+  - name: Run createrepo
+    command: createrepo /var/ftp/repo
+    notify:
+    - restart_ftp
+
+  handlers:
+  - name: restart_ftp
+    service: 
+      name: vsftpd
+      state: restarted 

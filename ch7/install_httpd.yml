@@ -1,0 +1,59 @@
+---
+- name: Install and Configure Web Services
+  hosts: client2
+  vars:
+    web_root: "/var/www/html/"
+    firewall_services:
+      - http
+      - https
+  vars_files:
+    - vars/common.yml
+  tasks:
+
+  - name: Install packages
+    block:
+    - name: Check OS version and install if correct
+      yum:
+        name: "{{ item }}"
+        state: latest
+      loop: "{{ packages }}"
+      when: >
+        ( ansible_facts['distribution'] == "RedHat" and
+          ansible_facts['distribution_major_version'] == "8" )
+        or
+        ( ansible_facts['distribution'] == "CentOS" and
+          ansible_facts['distribution_major_version'] == "8" )
+      register: task_output
+      notify: 
+        - open_firewall
+
+    - fail:
+        msg: "Host {{ ansible_facts['hostname'] }} does not meet minimal requirements"
+      when: "task_output.results[0].skipped is defined "
+
+  - name: Copy index.html
+    block:
+    - name: Copy index.html to web root on managed host
+      copy:
+        src: index.html
+        dest: "{{ web_root }}"
+      notify:
+        - restart_httpd
+    rescue:
+      - name: Print error message
+        debug:
+          msg: "ERROR: index.html could not be copied to the managed host"
+
+  handlers:
+
+    - name: open_firewall
+      firewalld:
+        service: "{{ item }}"
+        state: enabled
+        permanent: yes
+      loop: "{{ firewall_services }}"
+
+    - name: restart_httpd
+      service:
+        name: httpd
+        state: restarted

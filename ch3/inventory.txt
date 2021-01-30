@@ -1,0 +1,29 @@
+Inventory file: list of hosts
+    /etc/ansible/hosts (good for examples)
+
+    Host groups
+        can be nested
+
+            [web]
+            web1
+            web2
+
+            [db]
+            db1
+            db2
+
+            [servers:children]
+            web
+            db
+        
+        implicit groups:
+            localhost
+            all
+            ungrouped
+
+        List inventory:
+            ansible -i inventory <group/all> --list-hosts
+            ansible -i inventory <group/all> --list
+            ansible -i inventory <group/all> --graph
+
+    Dynamic inventory script can be used

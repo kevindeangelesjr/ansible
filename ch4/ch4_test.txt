@@ -1,0 +1,6 @@
+Create a shell script called install.sh that makes the managed hosts meet the following requirements:
+
+1. Install httpd webserver
+2. Start and enable the httpd webserver
+3. Create a user with the name anna
+4. Copy the /etc/hosts file from the control machine to the /tmp/ directory on the managed host

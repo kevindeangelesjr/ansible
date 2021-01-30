@@ -1,0 +1,84 @@
+---
+- name: Deploy Users and Groups On localhost
+  hosts: localhost
+  vars_files:
+    - vars/users.yml
+  tasks:
+
+  - name: Generate Encrypted Password
+    debug: 
+      msg: "{{ 'password' | password_hash('sha512','myrandomsalt') }}"
+    register: mypass
+  
+  - name: Create Groups on localhost
+    group:
+      name: "{{ item.group }}"
+      state: present
+    loop: "{{ users }}"
+
+  - name: Create Users on localhost
+    user:
+      name: "{{ item.username }}"
+      password: "{{ mypass.msg }}"
+      create_home: yes
+      groups: "{{ item.group }}"
+      append: yes
+      generate_ssh_key: yes
+      ssh_key_comment: "{{ item.username }}@{{ ansible_fqdn }}"
+      ssh_key_bits: 2048
+      ssh_key_file: .ssh/id_rsa
+    loop: "{{ users }}"
+
+  - name: Create Directories in the Current Directory to Store the Public Key for Each User, to be Pushed Out
+    file:
+      name: "{{ item.username }}"
+      state: directory
+    loop: "{{ users }}"
+
+  - name: Copy Public Keys for Each User to the Current Directory
+    shell: 'cat /home/{{ item.username }}/.ssh/id_rsa.pub > {{ item.username }}/id_rsa.pub'
+    loop: "{{ users }}"
+
+  - name: Configure sudo Access
+    copy:
+      content: '%profs ALL=(ALL) NOPASSWD: ALL'
+      dest: /etc/sudoers.d/profs
+
+
+- name: Deploy Users and Groups On Managed Nodes
+  hosts: all
+  vars_files:
+    - vars/users.yml
+  tasks:
+
+  - name: Generate Encrypted Password
+    debug:
+      msg: "{{ 'password' | password_hash('sha512','myrandomsalt') }}"
+    register: mypass
+
+  - name: Create Groups
+    group:
+      name: "{{ item.group }}"
+      state: present
+    loop: "{{ users }}"
+
+  - name: Create Users
+    user:
+      name: "{{ item.username }}"
+      password: "{{ mypass.msg }}"
+      create_home: yes
+      groups: "{{ item.group }}"
+      append: yes
+    loop: "{{ users }}"
+
+  - name: Copy Public Key to Managed Node for SSH Key Authentication
+    authorized_key: 
+      user: "{{ item.username }}"
+      state: present
+      key: "{{ lookup('file', './'+ item.username +'/id_rsa.pub') }}"
+    loop: "{{ users }}"
+
+  - name: Configure sudo Access
+    copy:
+      content: '%profs ALL=(ALL) NOPASSWD: ALL'
+      dest: /etc/sudoers.d/profs

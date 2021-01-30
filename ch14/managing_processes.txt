@@ -1,0 +1,42 @@
+systemd module: for managing systemd specific things
+
+cron module:
+    ---
+    - name: run a cron job
+    hosts: ansible2
+    tasks:
+    - name: run a periodic job
+      cron:
+        name: "run fstrim"
+        minute: "5"
+        hour: "4,19"
+        job: "fstrim"
+
+
+at module:
+    ---
+    - name: run an at task
+    hosts: ansible2
+    tasks:
+        - name: run command and write output to file
+        at:
+            command: "date > /tmp/my-at-file"
+            count: 5
+            units: minutes
+            unique: yes
+            state: present
+
+
+Manage default boot target:
+    ---
+    - name: set default boot target
+    hosts: ansible2
+    tasks:
+        - name: set boot target to graphical
+        file:
+            src: /usr/lib/systemd/system/graphical.target
+            dest: /etc/systemd/system/default.target
+            state: link
+
+
+reboot module: to reboot

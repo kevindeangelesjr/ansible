@@ -1,0 +1,25 @@
+---
+- name: Uninstall VSFTPD Service
+  hosts: all
+  vars_files:
+    - vars/vsftpd.yml
+  tasks:
+
+  - name: Stop and disable vsfptd service
+    service:
+      name: vsftpd
+      enabled: no
+      state: stopped
+
+  - name: Uninstall vsfptd
+    dnf:
+      name: vsftpd
+      state: absent
+
+  - name: Close firewall ports
+    firewalld:
+      service: ftp
+      permanent: yes
+      immediate: yes
+      state: disabled
+ 

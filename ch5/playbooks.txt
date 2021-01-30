@@ -1,0 +1,39 @@
+Playbook:
+    collection of "plays"
+        Each play starts with '-'
+        Each play targets specific hosts
+            Each play is list of tasks
+
+    Start of each playbook: '---'
+
+YAML (.yml or .yaml)
+    must use spaces (two) not tabs
+    Key value pairs (known as dictionaries)
+        key=value or key: value
+    
+    YAML list - some keys can have multiple values:
+
+        yum:
+          name:
+          - nmap
+          - httpd
+          - vsftpd
+          state: latest
+
+    Strings: can be quoted but don't have to be
+        multiline strings:
+            | - maintain formatting
+            > - doesn't have to be maintained as multiple lines, only for readability
+
+            - name: copy text
+              copy:
+                content: | 
+                  line 1
+                  line 2
+                dest: /tmp/multiline.txt
+
+    Check syntax:
+        ansible-playbook --syntax-check playbook.yml
+
+    Dry Run:
+        ansible-playbook -C playbook.yml

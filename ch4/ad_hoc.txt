@@ -1,0 +1,31 @@
+ansible all -m user -a "name=lisa"
+
+-m <module>
+-a "argument1 argument2"
+    All arguments within quotes
+
+modules
+    command - run arbirtary commands (not interpreted by shell - pipes don't work)
+        ansible all -m command -a "id lisa"
+    
+    shell - run arbirtary commands using a shell
+
+    raw - run commands directly through SSH without using python
+
+    copy - copy files or lines of text to files
+        ansible all -m copy -a 'content="hello world" dest=/etc/motd'
+
+    yum - manage packages on RHEL
+        ansible all -m yum -a "name=nmap state=latest"
+
+    service - manages the current state of systemd or systemv services
+        ansible all -m service -a "name=httpd state=started enabled=yes"
+
+    ping - checks whether managed hosts are in a manageable state
+        ansible all -m ping
+
+List all modules:
+    ansible-doc -l
+
+Module info:
+    ansible-doc <module name>

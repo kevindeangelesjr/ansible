@@ -1,0 +1,24 @@
+ansible.cfg can be created in local dir
+    /etc/ansible/ansible.cfg (for example)
+    settings can be defined in playbook, they take precedence
+
+    # default user to use for playbooks if user is not specified
+    remote_user = 
+
+    #Path to inventory file
+    inventory = 
+
+    # Boolean, specifies whether escalation is required
+    become = 
+
+    # Mechanism to use for privilege escalation
+    become_method = 
+
+    # Name of account used by become_method to run escalated commands
+    become_user =
+
+    # INdicates whether password should be prompted for
+    become_password = 
+
+    # Specifies whether SSH host keys should be checked
+    host_key_checking = 

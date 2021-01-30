@@ -1,0 +1,23 @@
+---
+- name: Uninstall httpd Webserver
+  hosts: all
+  tasks:
+  - name: Stop services for httpd
+    service:
+      name: httpd
+      enabled: no
+      state: stopped
+  - name: Uninstall httpd
+    yum:
+      name: httpd
+      state: absent
+  - name: Delete Welcome Page
+    copy:
+      content: ""
+      dest: /var/www/html/index.html
+  - name: Close Firewall for port 80
+    firewalld:
+      service: http
+      permanent: true
+      state: disabled
+      immediate: yes

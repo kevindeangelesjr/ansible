@@ -1,0 +1,80 @@
+---
+- name: Deploy Web Services
+  hosts: lamp
+  vars_files:
+    - vars/secret.yml
+  tasks:
+  - name: Install web server package
+    dnf:
+      name: "{{ ansible_facts['ansible_local']['local_facts-packages']['packages']['web_package'] }}"
+      state: latest
+  - name: Start and enable web server
+    service:
+      name: "{{ ansible_facts['ansible_local']['local_facts-services']['services']['web_service'] }}"
+      enabled: yes
+      state: started
+  - name: Install MariaDB package
+    dnf:
+      name: "{{ ansible_facts['ansible_local']['local_facts-packages']['packages']['db_package'] }}"
+      state: latest
+  - name: Install firewall package
+    dnf:
+      name: "{{ ansible_facts['ansible_local']['local_facts-packages']['packages']['firewall_package'] }}"
+      state: latest
+  - name: Start firewall services
+    service:
+      name: "{{ ansible_facts['ansible_local']['local_facts-services']['services']['firewall_service'] }}"
+      enabled: yes
+      state: started
+  - name: Open firewall port
+    firewalld:
+      service: http
+      state: enabled
+      permanent: yes 
+  - name: Copy welcome page text
+    copy:
+      content: "Welcome to the Ansible webserver"
+      dest: "{{ web_root }}/index.html"
+
+- name: Test Webserver Access
+  hosts: localhost
+  become: no
+  tasks:
+  - name: Test Webserver Access
+    uri:
+      url: http://client2
+      return_content: yes
+      status_code: 200 
+
+- name: Deploy File Services
+  hosts: file
+  vars_files:
+    - vars/common
+  tasks:
+  - name: Install ftp package
+    dnf:
+      name: "{{ ansible_facts['ansible_local']['local_facts-packages']['packages']['ftp_package'] }}"
+      state: latest
+  - name: Start and enable ftp server
+    service:
+      name: "{{ ansible_facts['ansible_local']['local_facts-services']['services']['ftp_service'] }}"
+      enabled: yes
+      state: started
+  - name: Install Samba package
+    dnf:
+      name: "{{ ansible_facts['ansible_local']['local_facts-packages']['packages']['smb_package'] }}"
+      state: latest
+  - name: Install firewall package
+    dnf:
+      name: "{{ ansible_facts['ansible_local']['local_facts-packages']['packages']['firewall_package'] }}"
+      state: latest
+  - name: Start firewall services
+    service:
+      name: "{{ ansible_facts['ansible_local']['local_facts-services']['services']['firewall_service'] }}"
+      enabled: yes
+      state: started
+  - name: Open firewall port for ftp
+    firewalld:
+      service: ftp
+      state: enabled
+      permanent: yes

@@ -1,0 +1,105 @@
+Acces a new repo: yum_repository module
+---
+- name: setting up repository access
+  hosts: all
+  tasks:
+  - name: connect to example repo
+    yum_repository:
+      name: example repo
+      description: RHCE8 example repo
+      file: examplerepo
+      baseurl: ftp://control.example.com/repo/
+      gpgcheck: no
+
+yum module
+    update all packages:
+    yum:
+      name: "*"
+      state: latest
+
+    package group:
+    yum:
+      name: '@Virtualization Host'
+      state: latest
+
+    
+Package facts are not gathered with normal ansible facts.  To gather package facts use package_facts:
+    --- 
+    - name: using package facts
+    hosts: ansible2
+    vars:
+        my_package: nmap
+    tasks: 
+    - name: install package
+        yum:
+        name: "{{ my_package }}"
+        state: present
+    - name: update package facts
+        package_facts:
+        manager: auto
+    - name: show package facts for {{ my_package }}
+        debug:
+        var: ansible_facts.packages[my_package]
+        when: my_package in ansible_facts.packages
+
+
+Create a repository:
+---
+- name: install FTP to export repo
+  hosts: localhost
+  tasks:
+  - name: install FTP server
+    yum:
+      name: 
+      - vsftpd
+      - createrepo_c
+      state: latest
+  - name: start FTP server
+    service:
+      name: vsftpd
+      state: started
+      enabled: yes
+  - name: open firewall for FTP
+    firewalld:
+      service: ftp
+      state: enabled
+      permanent: yes
+
+- name: setup the repo directory
+  hosts: localhost
+  tasks:
+  - name: make directory
+    file:
+      path: /var/ftp/repo
+      state: directory
+  - name: download packages
+    yum:
+      name: nmap
+      download_only: yes
+      download_dir: /var/ftp/repo
+  - name: createrepo
+    command: createrepo /var/ftp/repo
+
+
+Register RHEL subscription CLI:
+    subscripton-manager --username="username" --password="xxxx"
+    subscription-manager list --available
+    subscription-manager attach --pool=<pool ID>
+    subscription-manager repos --list
+    subscription-manager repos --enable "repo name"
+
+    w/ Ansible:
+    - name: use subscription manager to register and set up repos
+    hosts: ansible5
+    tasks:
+    - name: register and subscribe ansible5
+        redhat_subscription:
+        username: bob@example.com
+        password: verysecretpassword
+        state: present
+    - name: configure additional repo access
+        rhsm_repository:
+        name:
+        - rh-gluster-3-client-for-rhel-8-x86_64-rpms
+        - rhel-8-for-x86_64-appstream-debug-rpms
+        state: present

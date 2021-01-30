@@ -1,0 +1,15 @@
+In ansible.cfg
+    forks = #
+    to set the number of parallel hosts that the playbooks will run on
+    Can probably be 100 or greater
+
+Force serial execution:
+    use serial keyword in the play header
+
+
+Import a playbook (must be imported at play level, not task level):
+    - name: importing a playbook
+      import_playbook: playbook.yml
+
+
+Include task file (just file containing list of tasks)
